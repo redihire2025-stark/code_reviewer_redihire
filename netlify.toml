@@ -1,6 +1,3 @@
-# netlify.toml at REPO ROOT
-# Netlify reads this first, before changing into the base directory
-
 [build]
   base    = "frontend"
   command = "npm run build"
