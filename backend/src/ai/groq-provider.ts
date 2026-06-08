@@ -55,7 +55,9 @@ const ReviewResponseSchema = z.object({
 // ─── Chunking ────────────────────────────────────────────────
 // Groq has context window limits. We estimate tokens at ~4 chars/token
 // and split large PRs into chunks of at most MAX_CHUNK_CHARS characters.
-const MAX_CHUNK_CHARS = 32_000; // ~8000 tokens
+const MAX_CHUNK_CHARS = 24_000; // ~6000 tokens per chunk
+const MAX_FILES_PER_PR = 20; // Only review top 20 most important files
+const CHUNK_DELAY_MS = 2000; // 2s delay between chunks to avoid rate limits
 const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
 
 // ─── Groq Provider Implementation ───────────────────────────
@@ -87,6 +89,9 @@ export class GroqProvider implements AIProvider {
         'Reviewing chunk'
       );
 
+      // Delay between chunks to respect Groq rate limits
+      if (i > 0) await sleep(CHUNK_DELAY_MS);
+
       const chunkResult = await this.reviewChunk(payload, chunk);
       allIssues.push(...chunkResult.issues);
       totalTokens += chunkResult.tokensUsed;
@@ -99,6 +104,12 @@ export class GroqProvider implements AIProvider {
   }
 
   private chunkFiles(files: FileToReview[]): FileToReview[][] {
+    // Prioritise source files and limit total to avoid rate limits
+    const prioritised = files
+      .filter(f => /\.(ts|tsx|js|jsx|py|go|java|cs|rb|php|swift|kt|rs)$/.test(f.path))
+      .slice(0, MAX_FILES_PER_PR);
+    // Fall back to all files if no source files found
+    files = prioritised.length > 0 ? prioritised : files.slice(0, MAX_FILES_PER_PR);
     const chunks: FileToReview[][] = [];
     let currentChunk: FileToReview[] = [];
     let currentChunkSize = 0;
