@@ -1,0 +1,93 @@
+.page { max-width: 900px; }
+.header { margin-bottom: 32px; }
+.header h1 { font-size: 28px; font-weight: 700; margin: 0 0 4px; }
+.header p { color: #8b949e; margin: 0; }
+
+.reviewList { display: flex; flex-direction: column; gap: 12px; }
+
+.reviewCard {
+  background: #161b22;
+  border: 1px solid #21262d;
+  border-radius: 12px;
+  padding: 20px;
+  transition: border-color 0.15s;
+}
+
+.reviewCard:hover { border-color: #30363d; }
+
+.cardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 12px;
+}
+
+.prInfo { display: flex; flex-direction: column; gap: 4px; }
+
+.repo {
+  font-size: 12px;
+  color: #8b949e;
+  font-family: monospace;
+}
+
+.prTitle {
+  font-size: 15px;
+  font-weight: 600;
+  color: #58a6ff;
+  text-decoration: none;
+}
+
+.prTitle:hover { text-decoration: underline; }
+
+.cardMeta {
+  display: flex;
+  gap: 16px;
+  font-size: 13px;
+  color: #8b949e;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.issueCounts {
+  display: flex;
+  gap: 12px;
+  font-size: 13px;
+  margin-bottom: 10px;
+}
+
+.critical { color: #f85149; }
+.high { color: #e3702a; }
+.medium { color: #d29922; }
+.low { color: #58a6ff; }
+
+.strengths {
+  font-size: 13px;
+  color: #3fb950;
+  padding-top: 10px;
+  border-top: 1px solid #21262d;
+}
+
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 16px;
+  margin-top: 24px;
+}
+
+.pageBtn {
+  background: #21262d;
+  color: #e2e8f0;
+  border: 1px solid #30363d;
+  border-radius: 8px;
+  padding: 8px 16px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.pageBtn:hover:not(:disabled) { background: #30363d; }
+.pageBtn:disabled { opacity: 0.4; cursor: not-allowed; }
+.pageInfo { color: #8b949e; font-size: 14px; }
+.loading { color: #8b949e; padding: 20px 0; }
+.error { color: #f85149; padding: 20px 0; }

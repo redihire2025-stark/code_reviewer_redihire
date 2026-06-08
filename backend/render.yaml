@@ -1,0 +1,51 @@
+# render.yaml — deploy this file by connecting your GitHub repo to Render
+# as a "Blueprint". Render reads this file and creates everything automatically.
+#
+# WHAT RENDER CREATES AUTOMATICALLY:
+#   1. PostgreSQL database (ai-pr-reviewer-db)
+#   2. Web service running the Docker backend (ai-pr-reviewer-api)
+#   3. DATABASE_URL is wired from the DB to the service automatically
+#
+# WHAT YOU ADD MANUALLY (in Render dashboard after first deploy):
+#   - GITHUB_APP_ID
+#   - GITHUB_PRIVATE_KEY
+#   - GITHUB_WEBHOOK_SECRET
+#   - GROQ_API_KEY
+
+services:
+  - type: web
+    name: ai-pr-reviewer-api
+    runtime: docker
+    # Path is relative to the repo root (render.yaml lives in /backend,
+    # but Render resolves paths from where you set the "root directory")
+    dockerfilePath: ./Dockerfile
+    plan: starter
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3000
+      - key: DATABASE_URL
+        fromDatabase:
+          name: ai-pr-reviewer-db
+          property: connectionString
+      - key: GITHUB_APP_ID
+        sync: false
+      - key: GITHUB_PRIVATE_KEY
+        sync: false
+      - key: GITHUB_WEBHOOK_SECRET
+        sync: false
+      - key: GROQ_API_KEY
+        sync: false
+      - key: GROQ_MODEL
+        value: deepseek-r1-distill-llama-70b
+      # Set this after your Netlify deploy to lock down CORS to your exact URL
+      - key: FRONTEND_URL
+        sync: false
+
+databases:
+  - name: ai-pr-reviewer-db
+    plan: starter
+    databaseName: ai_pr_reviewer
+    user: ai_pr_reviewer

@@ -1,0 +1,14 @@
+.badge {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: -0.3px;
+}
+
+.pending { color: #8b949e; }
+.green { background: #1a4731; color: #3fb950; }
+.yellow { background: #3d2a00; color: #d29922; }
+.orange { background: #3d1a00; color: #e3702a; }
+.red { background: #3d0000; color: #f85149; }
