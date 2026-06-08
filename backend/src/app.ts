@@ -47,6 +47,11 @@ app.use(
         return callback(null, true);
       }
 
+      // Allow Capacitor mobile app (Android/iOS WebView origin)
+      if (origin === 'https://localhost' || origin === 'capacitor://localhost') {
+        return callback(null, true);
+      }
+
       // Block everything else
       callback(new Error(`CORS: origin ${origin} not allowed`));
     },
