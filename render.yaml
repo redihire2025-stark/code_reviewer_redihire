@@ -1,0 +1,50 @@
+# render.yaml — must live at the repo ROOT for Render Blueprint to find it.
+# Render reads this and auto-creates the PostgreSQL DB + web service.
+#
+# AUTOMATIC:
+#   - PostgreSQL database (ai-pr-reviewer-db)
+#   - Web service built from backend/Dockerfile
+#   - DATABASE_URL wired from DB → service automatically
+#
+# ADD MANUALLY in Render dashboard after first deploy:
+#   - GITHUB_APP_ID
+#   - GITHUB_PRIVATE_KEY  (single-line PEM with \n)
+#   - GITHUB_WEBHOOK_SECRET
+#   - GROQ_API_KEY
+#   - FRONTEND_URL  (your Netlify URL, after frontend deploy)
+
+services:
+  - type: web
+    name: ai-pr-reviewer-api
+    runtime: docker
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    plan: starter
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3000
+      - key: DATABASE_URL
+        fromDatabase:
+          name: ai-pr-reviewer-db
+          property: connectionString
+      - key: GITHUB_APP_ID
+        sync: false
+      - key: GITHUB_PRIVATE_KEY
+        sync: false
+      - key: GITHUB_WEBHOOK_SECRET
+        sync: false
+      - key: GROQ_API_KEY
+        sync: false
+      - key: GROQ_MODEL
+        value: deepseek-r1-distill-llama-70b
+      - key: FRONTEND_URL
+        sync: false
+
+databases:
+  - name: ai-pr-reviewer-db
+    plan: starter
+    databaseName: ai_pr_reviewer
+    user: ai_pr_reviewer
