@@ -5,17 +5,16 @@ generator client {
 datasource db {
   provider  = "postgresql"
   url       = env("DATABASE_URL")
-  // Neon requires SSL — directUrl used for migrations
   directUrl = env("DIRECT_URL")
 }
 
 model Repository {
   id             String   @id @default(cuid())
-  githubId       Int      @unique @map("github_id")
+  githubId       BigInt   @unique @map("github_id")
   fullName       String   @unique @map("full_name")
   owner          String
   name           String
-  installationId Int      @map("installation_id")
+  installationId BigInt   @map("installation_id")
   isActive       Boolean  @default(true) @map("is_active")
   createdAt      DateTime @default(now()) @map("created_at")
   updatedAt      DateTime @updatedAt @map("updated_at")
@@ -29,7 +28,7 @@ model Repository {
 
 model PullRequest {
   id         String   @id @default(cuid())
-  githubPrId Int      @map("github_pr_id")
+  githubPrId BigInt   @map("github_pr_id")
   number     Int
   title      String
   author     String
@@ -65,7 +64,7 @@ model Review {
   mediumCount    Int       @default(0) @map("medium_count")
   lowCount       Int       @default(0) @map("low_count")
   summaryBody    String?   @map("summary_body")
-  githubReviewId Int?      @map("github_review_id")
+  githubReviewId BigInt?   @map("github_review_id")
   errorMessage   String?   @map("error_message")
   processingMs   Int?      @map("processing_ms")
   tokensUsed     Int?      @map("tokens_used")
@@ -95,7 +94,7 @@ model ReviewComment {
   suggestedFix    String   @map("suggested_fix")
   improvedCode    String?  @map("improved_code")
   learningInsight String   @map("learning_insight")
-  githubCommentId Int?     @map("github_comment_id")
+  githubCommentId BigInt?  @map("github_comment_id")
   createdAt       DateTime @default(now()) @map("created_at")
 
   reviewId String @map("review_id")
@@ -135,7 +134,7 @@ model CodingRule {
   updatedAt    DateTime @updatedAt @map("updated_at")
 
   repositoryId String     @unique @map("repository_id")
-  repository   Repository @relation(fields: [repositoryId], references: [id], onDelete: Cascade)
+  repositoryDb Repository @relation(fields: [repositoryId], references: [id], onDelete: Cascade)
 
   @@map("coding_rules")
 }

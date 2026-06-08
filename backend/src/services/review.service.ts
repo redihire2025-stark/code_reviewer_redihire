@@ -51,16 +51,16 @@ export async function processPullRequest(
 
     // Step 1: Persist repository and PR
     const dbRepo = await upsertRepository({
-      githubId: repo.id,
+      githubId: BigInt(repo.id),
       fullName: repo.full_name,
       owner,
       name: repoName,
-      installationId: installation.id,
+      installationId: BigInt(installation.id),
     });
 
     const dbPR = await upsertPullRequest({
       repositoryId: dbRepo.id,
-      githubPrId: pr.id,
+      githubPrId: BigInt(pr.id),
       number: pr.number,
       title: pr.title,
       author: pr.user.login,

@@ -8,11 +8,11 @@ import type {
 // ─── Repository ──────────────────────────────────────────────
 
 export async function upsertRepository(params: {
-  githubId: number;
+  githubId: number | bigint;
   fullName: string;
   owner: string;
   name: string;
-  installationId: number;
+  installationId: number | bigint;
 }) {
   return prisma.repository.upsert({
     where: { githubId: params.githubId },
@@ -24,7 +24,7 @@ export async function upsertRepository(params: {
   });
 }
 
-export async function getRepositoryByGithubId(githubId: number) {
+export async function getRepositoryByGithubId(githubId: number | bigint) {
   return prisma.repository.findUnique({ where: { githubId } });
 }
 
@@ -32,7 +32,7 @@ export async function getRepositoryByGithubId(githubId: number) {
 
 export async function upsertPullRequest(params: {
   repositoryId: string;
-  githubPrId: number;
+  githubPrId: number | bigint;
   number: number;
   title: string;
   author: string;
