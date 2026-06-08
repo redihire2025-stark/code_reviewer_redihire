@@ -3,9 +3,9 @@ generator client {
 }
 
 datasource db {
-  provider  = "postgresql"
-  url       = env("DATABASE_URL")
-  directUrl = env("DIRECT_URL")
+  provider          = "postgresql"
+  url               = env("DATABASE_URL")
+  directUrl         = env("DIRECT_URL")
 }
 
 model Repository {
@@ -134,7 +134,7 @@ model CodingRule {
   updatedAt    DateTime @updatedAt @map("updated_at")
 
   repositoryId String     @unique @map("repository_id")
-  repositoryDb Repository @relation(fields: [repositoryId], references: [id], onDelete: Cascade)
+  repository   Repository @relation(fields: [repositoryId], references: [id], onDelete: Cascade)
 
   @@map("coding_rules")
 }

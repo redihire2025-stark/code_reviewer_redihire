@@ -36,6 +36,6 @@ services:
       - key: GROQ_API_KEY
         sync: false
       - key: GROQ_MODEL
-        value: deepseek-r1-distill-llama-70b
+        value: llama-3.3-70b-versatile
       - key: FRONTEND_URL
         sync: false
