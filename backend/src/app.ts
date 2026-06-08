@@ -9,6 +9,13 @@ import { apiRouter } from './routes/index.js';
 import { apiRateLimit } from './middleware/rate-limit.js';
 import { connectDatabase } from './database/client.js';
 
+
+// Fix: BigInt cannot be serialized by JSON.stringify by default.
+// GitHub IDs are BigInt in our schema — patch the prototype so Express res.json() works.
+(BigInt.prototype as unknown as { toJSON: () => string }).toJSON = function () {
+  return this.toString();
+};
+
 const app = express();
 
 // ─── Security Middleware ──────────────────────────────────────
