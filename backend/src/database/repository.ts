@@ -2,7 +2,6 @@ import { prisma } from './client.js';
 import type {
   ReviewResult,
   ReviewIssue,
-  ReviewSummary,
   ReviewStatus,
 } from '../types/index.js';
 
