@@ -80,6 +80,7 @@ export class GroqProvider implements AIProvider {
 
     const allIssues: ReviewIssue[] = [];
     let totalTokens = 0;
+    let aiScores: number[] = [];
 
     // Review each chunk independently, then merge results
     for (let i = 0; i < chunks.length; i++) {
@@ -95,10 +96,15 @@ export class GroqProvider implements AIProvider {
       const chunkResult = await this.reviewChunk(payload, chunk);
       allIssues.push(...chunkResult.issues);
       totalTokens += chunkResult.tokensUsed;
+      // Collect AI-assigned scores from each chunk
+      if (chunkResult.aiScore && chunkResult.aiScore > 0) {
+        aiScores.push(chunkResult.aiScore);
+      }
     }
 
     // Build the summary after merging all chunk results
-    const summary = this.buildSummary(allIssues, payload.files.length);
+    // Use average of AI scores if available, otherwise calculate from issues
+    const summary = this.buildSummary(allIssues, payload.files.length, aiScores);
 
     return { issues: allIssues, summary, tokensUsed: totalTokens };
   }
@@ -143,14 +149,18 @@ export class GroqProvider implements AIProvider {
   private async reviewChunk(
     payload: ReviewPayload,
     files: FileToReview[]
-  ): Promise<{ issues: ReviewIssue[]; tokensUsed: number }> {
+  ): Promise<{ issues: ReviewIssue[]; tokensUsed: number; aiScore?: number }> {
     const systemPrompt = this.buildSystemPrompt(payload.customRules);
     const userPrompt = this.buildUserPrompt(payload, files);
 
     const rawResponse = await this.callGroqWithRetry(systemPrompt, userPrompt);
 
     const parsed = this.parseResponse(rawResponse.content);
-    return { issues: parsed.issues, tokensUsed: rawResponse.tokensUsed };
+    return {
+      issues: parsed.issues,
+      tokensUsed: rawResponse.tokensUsed,
+      aiScore: parsed.summary?.overallScore,
+    };
   }
 
   private buildSystemPrompt(customRules?: string): string {
@@ -357,20 +367,39 @@ Provide a thorough educational review. Focus on issues that genuinely matter —
     return result.data;
   }
 
-  private buildSummary(issues: ReviewIssue[], filesReviewed: number): ReviewSummary {
+  private buildSummary(issues: ReviewIssue[], filesReviewed: number, aiScores: number[] = []): ReviewSummary {
     const criticalCount = issues.filter((i) => i.severity === 'Critical').length;
     const highCount = issues.filter((i) => i.severity === 'High').length;
     const mediumCount = issues.filter((i) => i.severity === 'Medium').length;
     const lowCount = issues.filter((i) => i.severity === 'Low').length;
+    const totalIssues = issues.length;
 
-    // Score algorithm: start at 10, deduct for issues
-    const score = Math.max(
-      0,
-      10 - criticalCount * 2.5 - highCount * 1.5 - mediumCount * 0.5 - lowCount * 0.1
-    );
+    // Score algorithm: density-based (issues per file reviewed) not raw count.
+    // A large PR with 23 issues across 20 files is better than a small PR with 5 issues in 2 files.
+    // Base: 10 points. Deduct based on WEIGHTED issue density.
+    const weightedIssues = criticalCount * 3 + highCount * 1.5 + mediumCount * 0.5 + lowCount * 0.1;
+    const density = filesReviewed > 0 ? weightedIssues / filesReviewed : weightedIssues;
+    // Scale: density of 0 = 10/10, density of 5+ = 1/10
+    const score = Math.min(10, Math.max(1, 10 - density * 1.5));
+
+    // If the AI provided its own scores, average them and blend with our calculation
+    let finalScore: number;
+    if (aiScores.length > 0) {
+      const avgAiScore = aiScores.reduce((a, b) => a + b, 0) / aiScores.length;
+      // Blend: 60% AI score, 40% our density calculation
+      finalScore = avgAiScore * 0.6 + score * 0.4;
+    } else {
+      // Fallback: use density score with floors
+      finalScore = criticalCount === 0 && totalIssues < 10
+        ? Math.max(5, score)
+        : criticalCount === 0
+        ? Math.max(4, score)
+        : Math.max(1, score);
+    }
+    finalScore = Math.min(10, Math.max(1, finalScore));
 
     return {
-      overallScore: parseFloat(score.toFixed(1)),
+      overallScore: parseFloat(finalScore.toFixed(1)),
       filesReviewed,
       criticalCount,
       highCount,
