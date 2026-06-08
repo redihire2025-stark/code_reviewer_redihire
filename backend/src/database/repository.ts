@@ -66,11 +66,24 @@ export async function createReview(params: {
   pullRequestId: string;
   headSha: string;
 }) {
-  return prisma.review.create({
-    data: {
+  // Use upsert so redelivered webhooks don't crash on duplicate key.
+  // If a failed review already exists for this SHA, reset it to pending.
+  return prisma.review.upsert({
+    where: {
+      pullRequestId_headSha: {
+        pullRequestId: params.pullRequestId,
+        headSha: params.headSha,
+      },
+    },
+    create: {
       pullRequestId: params.pullRequestId,
       headSha: params.headSha,
       status: 'pending',
+    },
+    update: {
+      status: 'pending',
+      errorMessage: null,
+      completedAt: null,
     },
   });
 }

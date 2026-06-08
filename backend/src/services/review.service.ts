@@ -74,19 +74,41 @@ export async function processPullRequest(
 
     // Step 2: Idempotency check — don't re-review the same commit SHA
     const existingReview = await findExistingReview(dbPR.id, pr.head.sha);
-    if (existingReview && existingReview.status === 'completed') {
+    if (existingReview) {
+      // Skip if already completed or currently processing
+      if (existingReview.status === 'completed') {
+        logger.info(
+          { reviewId: existingReview.id, sha: pr.head.sha },
+          'Review already completed for this SHA, skipping'
+        );
+        return {
+          reviewId: existingReview.id,
+          prNumber: pr.number,
+          repository: repo.full_name,
+          status: 'completed',
+          score: existingReview.overallScore ?? undefined,
+          commentsPosted: existingReview.totalComments,
+        };
+      }
+      // If processing, skip to avoid duplicate parallel runs
+      if (existingReview.status === 'processing') {
+        logger.info(
+          { reviewId: existingReview.id, sha: pr.head.sha },
+          'Review already processing for this SHA, skipping'
+        );
+        return {
+          reviewId: existingReview.id,
+          prNumber: pr.number,
+          repository: repo.full_name,
+          status: 'processing',
+          commentsPosted: 0,
+        };
+      }
+      // If failed, fall through — createReview upsert will reset it to pending
       logger.info(
         { reviewId: existingReview.id, sha: pr.head.sha },
-        'Review already exists for this SHA, skipping'
+        'Retrying previously failed review'
       );
-      return {
-        reviewId: existingReview.id,
-        prNumber: pr.number,
-        repository: repo.full_name,
-        status: 'completed',
-        score: existingReview.overallScore ?? undefined,
-        commentsPosted: existingReview.totalComments,
-      };
     }
 
     // Step 3: Create pending review record
