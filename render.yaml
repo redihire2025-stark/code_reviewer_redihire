@@ -1,24 +1,14 @@
-# render.yaml — Render Blueprint (must be at repo ROOT)
+# render.yaml — Render Blueprint (repo ROOT)
+# 100% FREE: Neon DB + Render web service + Netlify frontend + Groq AI
 #
-# 100% FREE STACK — no credit card needed anywhere:
-#   Neon (neon.tech)   → free PostgreSQL
-#   Render free tier   → web service
-#   Netlify free tier  → frontend dashboard
-#   Groq free tier     → AI code reviews
-#
-# HOW TO DEPLOY:
-#   1. Create free Neon DB at https://neon.tech
-#      → Dashboard → Connection Details → select "Prisma"
-#      → copy DATABASE_URL (pooled) and DIRECT_URL (direct)
-#   2. Connect this repo in Render as a Blueprint (leave root dir blank)
-#   3. After first deploy, add these env vars in Render dashboard:
-#        DATABASE_URL       → Neon pooled connection string
-#        DIRECT_URL         → Neon direct connection string
-#        GITHUB_APP_ID      → from github.com/settings/apps
-#        GITHUB_PRIVATE_KEY → single-line PEM (newlines as \n)
-#        GITHUB_WEBHOOK_SECRET → run: openssl rand -hex 32
-#        GROQ_API_KEY       → from console.groq.com
-#        FRONTEND_URL       → your Netlify URL (after frontend deploy)
+# After Blueprint deploys, go to the service Environment tab and add:
+#   DATABASE_URL       → postgresql://neondb_owner:npg_WPpaK3Uirx7D@ep-long-star-ap2rcddq-pooler.c-7.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require
+#   DIRECT_URL         → postgresql://neondb_owner:npg_WPpaK3Uirx7D@ep-long-star-ap2rcddq.c-7.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require
+#   GITHUB_APP_ID      → from github.com/settings/apps
+#   GITHUB_PRIVATE_KEY → single-line PEM (newlines replaced with \n)
+#   GITHUB_WEBHOOK_SECRET → run: openssl rand -hex 32
+#   GROQ_API_KEY       → from console.groq.com
+#   FRONTEND_URL       → your Netlify URL after frontend deploy
 
 services:
   - type: web
