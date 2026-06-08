@@ -1,15 +1,18 @@
 import { z } from 'zod';
 import type { AppConfig } from '../types/index.js';
 
+// Only DATABASE_URL is truly required at startup.
+// Other keys are validated when first used so the server can start
+// and show meaningful errors in logs even if some vars are missing.
 const EnvSchema = z.object({
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
   PORT: z.string().default('3000'),
   DATABASE_URL: z.string().min(1, 'DATABASE_URL is required'),
-  DIRECT_URL: z.string().optional(), // Required for Neon pooled connections
-  GITHUB_APP_ID: z.string().min(1, 'GITHUB_APP_ID is required'),
-  GITHUB_PRIVATE_KEY: z.string().min(1, 'GITHUB_PRIVATE_KEY is required'),
-  GITHUB_WEBHOOK_SECRET: z.string().min(1, 'GITHUB_WEBHOOK_SECRET is required'),
-  GROQ_API_KEY: z.string().min(1, 'GROQ_API_KEY is required'),
+  DIRECT_URL: z.string().optional(),
+  GITHUB_APP_ID: z.string().default(''),
+  GITHUB_PRIVATE_KEY: z.string().default(''),
+  GITHUB_WEBHOOK_SECRET: z.string().default(''),
+  GROQ_API_KEY: z.string().default(''),
   GROQ_MODEL: z.string().default('deepseek-r1-distill-llama-70b'),
   FRONTEND_URL: z.string().optional(),
 });
