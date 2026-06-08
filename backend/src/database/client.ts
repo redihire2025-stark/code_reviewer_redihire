@@ -1,24 +1,24 @@
 import { PrismaClient } from '@prisma/client';
 import { logger } from '../utils/logger.js';
 
-// Singleton pattern: reuse the same PrismaClient across the app.
-// In development, store it on the global object to prevent hot-reload
-// from creating multiple connections.
 declare global {
   // eslint-disable-next-line no-var
   var __prisma: PrismaClient | undefined;
 }
 
 const createPrismaClient = (): PrismaClient => {
+  // Use DIRECT_URL if available — bypasses pgBouncer connection pooler
+  // which causes "cached plan must not change result type" errors after migrations.
+  // Neon provides both a pooled URL (fast connections) and a direct URL (stable for queries).
+  const url = process.env.DIRECT_URL || process.env.DATABASE_URL;
+
   const client = new PrismaClient({
     log: [
       { level: 'error', emit: 'event' },
       { level: 'warn', emit: 'event' },
     ],
     datasources: {
-      db: {
-        url: process.env.DATABASE_URL,
-      },
+      db: { url },
     },
   });
 

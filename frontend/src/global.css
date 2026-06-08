@@ -4,9 +4,19 @@
   padding: 0;
 }
 
+:root {
+  --redihire-primary: #2563eb;
+  --redihire-accent: #3b82f6;
+  --redihire-dark: #0d1117;
+  --redihire-surface: #161b22;
+  --redihire-border: #21262d;
+  --redihire-text: #e2e8f0;
+  --redihire-muted: #8b949e;
+}
+
 body {
-  background: #0d1117;
-  color: #e2e8f0;
+  background: var(--redihire-dark);
+  color: var(--redihire-text);
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;

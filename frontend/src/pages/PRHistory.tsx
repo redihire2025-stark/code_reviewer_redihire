@@ -15,7 +15,7 @@ export function PRHistoryPage() {
     <div className={styles.page}>
       <header className={styles.header}>
         <h1>Pull Request Reviews</h1>
-        <p>Complete review history across all repositories</p>
+        <p>Complete AI review history — powered by Redihire</p>
       </header>
 
       {reviews.loading && <div className={styles.loading}>Loading reviews...</div>}

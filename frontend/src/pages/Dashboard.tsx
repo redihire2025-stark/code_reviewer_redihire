@@ -34,7 +34,7 @@ export function DashboardPage() {
     <div className={styles.page}>
       <header className={styles.header}>
         <h1>Dashboard</h1>
-        <p>AI-powered code review insights</p>
+        <p>Redihire Code Reviewer — AI-powered pull request analysis</p>
       </header>
 
       {stats.loading ? (
