@@ -1,19 +1,18 @@
-// This is the Prisma schema for the AI PR Reviewer platform.
-// It defines all database tables, relationships, and indexes.
-
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  // Neon requires SSL — directUrl used for migrations
+  directUrl = env("DIRECT_URL")
 }
 
 model Repository {
   id             String   @id @default(cuid())
   githubId       Int      @unique @map("github_id")
-  fullName       String   @unique @map("full_name") // e.g. "owner/repo"
+  fullName       String   @unique @map("full_name")
   owner          String
   name           String
   installationId Int      @map("installation_id")
@@ -29,19 +28,19 @@ model Repository {
 }
 
 model PullRequest {
-  id           String   @id @default(cuid())
-  githubPrId   Int      @map("github_pr_id")
-  number       Int
-  title        String
-  author       String
-  headSha      String   @map("head_sha")
-  baseBranch   String   @map("base_branch")
-  headBranch   String   @map("head_branch")
-  state        String   @default("open") // open | closed | merged
-  htmlUrl      String   @map("html_url")
-  isDraft      Boolean  @default(false) @map("is_draft")
-  createdAt    DateTime @default(now()) @map("created_at")
-  updatedAt    DateTime @updatedAt @map("updated_at")
+  id         String   @id @default(cuid())
+  githubPrId Int      @map("github_pr_id")
+  number     Int
+  title      String
+  author     String
+  headSha    String   @map("head_sha")
+  baseBranch String   @map("base_branch")
+  headBranch String   @map("head_branch")
+  state      String   @default("open")
+  htmlUrl    String   @map("html_url")
+  isDraft    Boolean  @default(false) @map("is_draft")
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
 
   repositoryId String     @map("repository_id")
   repository   Repository @relation(fields: [repositoryId], references: [id], onDelete: Cascade)
@@ -55,24 +54,23 @@ model PullRequest {
 }
 
 model Review {
-  id              String   @id @default(cuid())
-  // Idempotency: one review per (PR, commit SHA)
-  headSha         String   @map("head_sha")
-  status          String   @default("pending") // pending | processing | completed | failed
-  overallScore    Float?   @map("overall_score") // 0-10
-  filesReviewed   Int      @default(0) @map("files_reviewed")
-  totalComments   Int      @default(0) @map("total_comments")
-  criticalCount   Int      @default(0) @map("critical_count")
-  highCount       Int      @default(0) @map("high_count")
-  mediumCount     Int      @default(0) @map("medium_count")
-  lowCount        Int      @default(0) @map("low_count")
-  summaryBody     String?  @map("summary_body") // The full summary posted to GitHub
-  githubReviewId  Int?     @map("github_review_id") // GitHub review ID after posting
-  errorMessage    String?  @map("error_message")
-  processingMs    Int?     @map("processing_ms") // How long the review took
-  tokensUsed      Int?     @map("tokens_used") // Groq token consumption
-  createdAt       DateTime @default(now()) @map("created_at")
-  completedAt     DateTime? @map("completed_at")
+  id             String    @id @default(cuid())
+  headSha        String    @map("head_sha")
+  status         String    @default("pending")
+  overallScore   Float?    @map("overall_score")
+  filesReviewed  Int       @default(0) @map("files_reviewed")
+  totalComments  Int       @default(0) @map("total_comments")
+  criticalCount  Int       @default(0) @map("critical_count")
+  highCount      Int       @default(0) @map("high_count")
+  mediumCount    Int       @default(0) @map("medium_count")
+  lowCount       Int       @default(0) @map("low_count")
+  summaryBody    String?   @map("summary_body")
+  githubReviewId Int?      @map("github_review_id")
+  errorMessage   String?   @map("error_message")
+  processingMs   Int?      @map("processing_ms")
+  tokensUsed     Int?      @map("tokens_used")
+  createdAt      DateTime  @default(now()) @map("created_at")
+  completedAt    DateTime? @map("completed_at")
 
   pullRequestId String      @map("pull_request_id")
   pullRequest   PullRequest @relation(fields: [pullRequestId], references: [id], onDelete: Cascade)
@@ -87,18 +85,18 @@ model Review {
 }
 
 model ReviewComment {
-  id            String  @id @default(cuid())
-  filePath      String  @map("file_path")
-  line          Int?    // null = general file comment
-  severity      String  // Critical | High | Medium | Low
-  category      String  // Bugs | TypeScript | React | Performance | Security | Architecture | CodeQuality | Testing
-  problem       String
-  whyItMatters  String  @map("why_it_matters")
-  suggestedFix  String  @map("suggested_fix")
-  improvedCode  String? @map("improved_code")
-  learningInsight String @map("learning_insight")
-  githubCommentId Int?  @map("github_comment_id")
-  createdAt     DateTime @default(now()) @map("created_at")
+  id              String   @id @default(cuid())
+  filePath        String   @map("file_path")
+  line            Int?
+  severity        String
+  category        String
+  problem         String
+  whyItMatters    String   @map("why_it_matters")
+  suggestedFix    String   @map("suggested_fix")
+  improvedCode    String?  @map("improved_code")
+  learningInsight String   @map("learning_insight")
+  githubCommentId Int?     @map("github_comment_id")
+  createdAt       DateTime @default(now()) @map("created_at")
 
   reviewId String @map("review_id")
   review   Review @relation(fields: [reviewId], references: [id], onDelete: Cascade)
@@ -110,18 +108,18 @@ model ReviewComment {
 }
 
 model ReviewMetrics {
-  id              String @id @default(cuid())
-  bugsFound       Int    @default(0) @map("bugs_found")
-  tsIssues        Int    @default(0) @map("ts_issues")
-  reactIssues     Int    @default(0) @map("react_issues")
-  perfIssues      Int    @default(0) @map("perf_issues")
-  securityIssues  Int    @default(0) @map("security_issues")
-  archIssues      Int    @default(0) @map("arch_issues")
-  qualityIssues   Int    @default(0) @map("quality_issues")
-  testingIssues   Int    @default(0) @map("testing_issues")
-  strengths       String[] // Array of positive observations
-  improvements    String[] // Array of improvement recommendations
-  learningRecs    String[] @map("learning_recs")
+  id             String   @id @default(cuid())
+  bugsFound      Int      @default(0) @map("bugs_found")
+  tsIssues       Int      @default(0) @map("ts_issues")
+  reactIssues    Int      @default(0) @map("react_issues")
+  perfIssues     Int      @default(0) @map("perf_issues")
+  securityIssues Int      @default(0) @map("security_issues")
+  archIssues     Int      @default(0) @map("arch_issues")
+  qualityIssues  Int      @default(0) @map("quality_issues")
+  testingIssues  Int      @default(0) @map("testing_issues")
+  strengths      String[]
+  improvements   String[]
+  learningRecs   String[] @map("learning_recs")
 
   reviewId String @unique @map("review_id")
   review   Review @relation(fields: [reviewId], references: [id], onDelete: Cascade)
@@ -131,8 +129,8 @@ model ReviewMetrics {
 
 model CodingRule {
   id           String   @id @default(cuid())
-  content      String   // Full markdown content of .ai-review/rules.md
-  fileSha      String   @map("file_sha") // GitHub blob SHA for cache invalidation
+  content      String
+  fileSha      String   @map("file_sha")
   createdAt    DateTime @default(now()) @map("created_at")
   updatedAt    DateTime @updatedAt @map("updated_at")
 
