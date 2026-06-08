@@ -6,28 +6,16 @@
 [build.environment]
   NODE_VERSION = "20"
 
-# Proxy /api/* to Render backend — eliminates CORS issues entirely
-# The browser calls netlify.app/api/... and Netlify forwards to Render
+# Proxy /api/* to Render backend
 [[redirects]]
   from   = "/api/*"
   to     = "https://ai-pr-reviewer-api.onrender.com/api/:splat"
   status = 200
   force  = true
+  headers = {X-From = "Netlify"}
 
-# SPA routing — all other routes go to index.html
+# SPA routing
 [[redirects]]
   from   = "/*"
   to     = "/index.html"
   status = 200
-
-[[headers]]
-  for = "/*"
-  [headers.values]
-    X-Frame-Options        = "DENY"
-    X-Content-Type-Options = "nosniff"
-    Referrer-Policy        = "strict-origin-when-cross-origin"
-
-[[headers]]
-  for = "/assets/*"
-  [headers.values]
-    Cache-Control = "public, max-age=31536000, immutable"
